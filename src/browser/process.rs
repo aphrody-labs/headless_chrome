@@ -366,7 +366,7 @@ impl Process {
             temp_user_data_dir = Some(dir);
             buf
         };
-        let data_dir_option = format!("--user-data-dir={}", &user_data_dir.to_str().unwrap());
+        let data_dir_option = format!("--user-data-dir={}", user_data_dir.to_str().unwrap());
 
         #[cfg(test)]
         ForTesting::USER_DATA_DIR.with(|dir| {

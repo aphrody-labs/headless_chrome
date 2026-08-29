@@ -265,7 +265,7 @@ impl<'a> Element<'a> {
 
     pub fn click(&self) -> Result<&Self> {
         self.scroll_into_view()?;
-        debug!("Clicking element {:?}", &self);
+        debug!("Clicking element {self:?}");
         let midpoint = self.get_midpoint()?;
         self.parent.click_point(midpoint)?;
         Ok(self)
@@ -274,7 +274,7 @@ impl<'a> Element<'a> {
     pub fn type_into(&self, text: &str) -> Result<&Self> {
         self.click()?;
 
-        debug!("Typing into element ( {:?} ): {}", &self, text);
+        debug!("Typing into element ( {self:?} ): {text}");
 
         self.parent.type_str(text)?;
 

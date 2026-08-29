@@ -172,7 +172,7 @@ impl Transport {
         let params_string = format!("{:?}", call.get_params());
         trace!(
             "waiting for response from call registry: {} {:?}",
-            &call_id,
+            call_id,
             params_string.chars().take(400).collect::<String>()
         );
 
@@ -332,8 +332,7 @@ impl Transport {
                                     },
                                     Err(e) => {
                                         trace!(
-                                            "Message from target isn't recognised: {:?} - {}",
-                                            &raw_message, e,
+                                            "Message from target isn't recognised: {raw_message:?} - {e}",
                                         );
                                     }
                                 }
