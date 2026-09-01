@@ -609,7 +609,7 @@ mod tests {
         installed_dir.push(format!("{PLATFORM}-{CUR_REV}"));
 
         if installed_dir.exists() {
-            info!("Deleting pre-existing install at {:?}", &installed_dir);
+            info!("Deleting pre-existing install at {installed_dir:?}");
             fs::remove_dir_all(&installed_dir).expect("Could not delete pre-existing install");
         }
 
