@@ -787,10 +787,7 @@ fn get_script_source() -> Result<()> {
     tab.enable_profiler()?;
     tab.start_js_coverage()?;
 
-    tab.navigate_to(&format!(
-        "{}/basic_page_with_js_scripts.html",
-        &server.url()
-    ))?;
+    tab.navigate_to(&format!("{}/basic_page_with_js_scripts.html", server.url()))?;
 
     tab.wait_until_navigated()?;
 

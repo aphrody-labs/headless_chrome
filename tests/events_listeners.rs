@@ -1,9 +1,10 @@
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use anyhow::Result;
 
 use headless_chrome::Browser;
-use headless_chrome::browser::tab::Tab;
+use headless_chrome::browser::tab::{EventListener, Tab};
 use headless_chrome::protocol::cdp::types::Event;
 
 mod server;
@@ -81,5 +82,33 @@ fn remove_event_listener() -> Result<()> {
 
     assert_eq!(*counter_log_entries.lock().unwrap(), 1);
     assert_eq!(*counter_exception_thrown.lock().unwrap(), 0);
+    Ok(())
+}
+
+/// Dropping a tab has to end its event handling thread, otherwise every tab ever
+/// opened keeps its state (and its thread) alive until the browser goes away.
+#[test]
+fn tab_state_is_released_when_tab_is_dropped() -> Result<()> {
+    let browser = Browser::default()?;
+    let tab: Arc<Tab> = browser.new_tab()?;
+
+    let listener: Arc<dyn EventListener<Event> + Send + Sync> = Arc::new(|_event: &Event| {});
+    // Held by the tab, which the tab's event handling thread holds in turn.
+    let weak_listener = tab.add_event_listener(Arc::clone(&listener))?;
+    drop(listener);
+    assert!(weak_listener.upgrade().is_some());
+
+    tab.close(false)?;
+    drop(tab);
+
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while weak_listener.upgrade().is_some() {
+        assert!(
+            Instant::now() < deadline,
+            "tab's event handling thread is still holding on to the tab's state"
+        );
+        std::thread::sleep(Duration::from_millis(50));
+    }
+
     Ok(())
 }

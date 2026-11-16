@@ -428,22 +428,33 @@ impl Tab {
                                 }
                             },
                         );
+                        // The request is done: stop holding on to its response params.
+                        received_event_params
+                            .lock()
+                            .unwrap()
+                            .remove(&ev.params.request_id);
                     }
-                    Event::NetworkLoadingFailed(ev) => loading_failed_handler_mutex
-                        .lock()
-                        .unwrap()
-                        .iter()
-                        .for_each(|(_name, handler)| {
-                            let request_id = ev.params.request_id.clone();
+                    Event::NetworkLoadingFailed(ev) => {
+                        loading_failed_handler_mutex
+                            .lock()
+                            .unwrap()
+                            .iter()
+                            .for_each(|(_name, handler)| {
+                                let request_id = ev.params.request_id.clone();
 
-                            if let Some(params) =
-                                received_event_params.lock().unwrap().get(&request_id)
-                            {
-                                handler(params.clone(), ev.params.clone());
-                            } else {
-                                warn!("Request id does not exist");
-                            }
-                        }),
+                                if let Some(params) =
+                                    received_event_params.lock().unwrap().get(&request_id)
+                                {
+                                    handler(params.clone(), ev.params.clone());
+                                } else {
+                                    warn!("Request id does not exist");
+                                }
+                            });
+                        received_event_params
+                            .lock()
+                            .unwrap()
+                            .remove(&ev.params.request_id);
+                    }
                     _ => {
                         let raw_event = format!("{event:?}");
                         trace!(
@@ -1935,5 +1946,15 @@ impl Tab {
     /// Get the handle of the dialog opened in this tab.
     pub fn get_dialog(&self) -> Dialog {
         Dialog::new(self.session_id.clone(), self.transport.clone())
+    }
+}
+
+impl Drop for Tab {
+    fn drop(&mut self) {
+        trace!("dropping tab with session {:?}", self.session_id);
+        // Unregistering closes the channel this tab's event handling thread reads from,
+        // which is what lets that thread (and everything it holds on to) finish. Without
+        // it the transport keeps the sender for the browser's whole lifetime.
+        self.transport.remove_target_listener(&self.session_id);
     }
 }

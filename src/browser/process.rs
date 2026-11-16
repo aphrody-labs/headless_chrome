@@ -366,7 +366,7 @@ impl Process {
             temp_user_data_dir = Some(dir);
             buf
         };
-        let data_dir_option = format!("--user-data-dir={}", &user_data_dir.to_str().unwrap());
+        let data_dir_option = format!("--user-data-dir={}", user_data_dir.to_str().unwrap());
 
         #[cfg(test)]
         ForTesting::USER_DATA_DIR.with(|dir| {
@@ -609,7 +609,7 @@ mod tests {
         installed_dir.push(format!("{PLATFORM}-{CUR_REV}"));
 
         if installed_dir.exists() {
-            info!("Deleting pre-existing install at {:?}", &installed_dir);
+            info!("Deleting pre-existing install at {installed_dir:?}");
             fs::remove_dir_all(&installed_dir).expect("Could not delete pre-existing install");
         }
 
