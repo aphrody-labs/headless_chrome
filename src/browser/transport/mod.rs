@@ -348,7 +348,7 @@ impl Transport {
                                             "Couldn't send browser an event: {:?}",
                                             event_string.chars().take(400).collect::<String>(),
                                         );
-                                        break;
+                                        listeners.lock().unwrap().remove(&ListenerId::Browser);
                                     }
                                 }
                             }
